@@ -14,15 +14,23 @@ bool check_input(int argCount, char** args){
 
 
 int main(int argCount, char** args){
-	if(!check_intput(argCount,args)) return -1;
+	if(!check_input(argCount,args)) return -1;
 
-	List_s outgoing; //for messages that are to be sent
-	List_s incoming; //for messages that are recieved
+	struct List_s outgoing; //for messages that are to be sent
+	struct List_s incoming; //for messages that are recieved
 
-	List_add(outgoing,"Hello my name is Bob");
+	char message[] = "Hello my name is Bob";
+	printf("Adding...\n");
+	List_add(&outgoing,message);
+	printf("Added message to list\n");
 
-	printf("%s \n", List_curr(outgoing));
 
+	char* currentmessage = List_curr(&outgoing);
+	printf("Recieved current message\n");
+
+	//I think i'm seg faulting here? But i need to figure out a way to display lol
+	printf("%s \n", *currentmessage);
+	printf("Ending Program <3\n");
 
 
 	return 0;
