@@ -6,7 +6,7 @@
 
 #include "list.h"
 #include "input.h"
-
+#include "receiver.h"
 
 void init_sender(void* unused);
 void* sender(void* unused);

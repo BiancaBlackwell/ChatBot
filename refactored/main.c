@@ -1,5 +1,5 @@
 //The following are modules for each pthread
-//#include "receiver.h" 
+#include "receiver.h" 
 #include "sender.h"
 //#include "screen.h"
 #include "input.h"
@@ -22,9 +22,11 @@ int main(int argCount, char** args){
 
 	init_input(NULL);
 	init_sender(NULL);
+	init_receiver(NULL);
 
 	sleep(10);
 
+	close_receiver(NULL);
 	close_input(NULL);
 	close_sender(NULL);
 

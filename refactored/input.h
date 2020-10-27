@@ -3,6 +3,8 @@
 
 #define MSG_MAX_LEN 1024
 #include "list.h"
+#include "input.h"
+#include "receiver.h"
 //todo: add functions here!
 
 void init_input(void* unused);

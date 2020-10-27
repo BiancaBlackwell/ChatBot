@@ -24,7 +24,7 @@ void new_input(char *message, List* outgoing){
 		return close_input(NULL);
 	}
 	List_add(outgoing,message);
-	char* currentmessage = List_remove(outgoing);
+	//char* currentmessage = List_remove(outgoing);
 
 	//todo: instead of printing, have it add to a list
 	//printf("%s \n", currentmessage);
