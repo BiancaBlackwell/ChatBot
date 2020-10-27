@@ -1,4 +1,5 @@
 #include "input.h"
+#include "sender.h"
 
 #include "list.h"
 #include <stdio.h>
@@ -8,25 +9,32 @@
 #include <stdlib.h>
 
 
-static pthread_t inputMonitor;
+static pthread_t inputThread;
+struct List_s *outgoing;
 
 void init_input(void* unused){
 	//todo: make this pass a shared mutex variable to lock list access
-	pthread_create(&inputMonitor, NULL, listen, NULL);
+	pthread_create(&inputThread, NULL, listener, NULL);
 }
 
 void new_input(char *message, List* outgoing){
+	if(message[0] == '!'){
+		printf("Shutting Down Input Module...");
+		fflush(stdout);
+		return close_input(NULL);
+	}
 	List_add(outgoing,message);
 	char* currentmessage = List_remove(outgoing);
 
 	//todo: instead of printing, have it add to a list
-	printf("%s \n", currentmessage);
+	//printf("%s \n", currentmessage);
 }
 
-void* listen(void* unused){
+void* listener(void* unused){
+	printf("Starting up Input Module...\n");
 	//possible issue writing over message if i make a new message before it is sent?
 	char message[MSG_MAX_LEN];
-	struct List_s *outgoing = List_create(); //for messages that are to be sent
+	outgoing = List_create(); //for messages that are to be sent
 	
 	while(true){
 		if(scanf("%s", message) != 0){
@@ -36,7 +44,7 @@ void* listen(void* unused){
 }
 
 void close_input(void* unused){
-		pthread_cancel(inputMonitor);
-		pthread_join(inputMonitor, NULL);
+		pthread_cancel(inputThread);
+		pthread_join(inputThread, NULL);
 }
 

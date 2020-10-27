@@ -1,6 +1,6 @@
 //The following are modules for each pthread
 //#include "receiver.h" 
-//#include "sender.h"
+#include "sender.h"
 //#include "screen.h"
 #include "input.h"
 
@@ -21,10 +21,12 @@ static int socketDescriptor;
 int main(int argCount, char** args){
 
 	init_input(NULL);
+	init_sender(NULL);
 
 	sleep(10);
 
 	close_input(NULL);
+	close_sender(NULL);
 
 
 	printf("We did it reddit!");

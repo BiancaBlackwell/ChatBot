@@ -7,7 +7,7 @@
 
 void init_input(void* unused);
 void new_input(char *message, List* outgoing);
-void* listen(void* unused);
+void* listener(void* unused);
 void close_input(void* unused);
 
 
