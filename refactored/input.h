@@ -5,9 +5,6 @@
 #include "list.h"
 #include "input.h"
 #include "receiver.h"
-//todo: add functions here!
-#define PORT 22110
-#define fPORT 21210
 
 void init_input(void* unused);
 void* listener(void* unused);

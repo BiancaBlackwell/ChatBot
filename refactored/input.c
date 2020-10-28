@@ -10,7 +10,6 @@
 
 
 static pthread_t inputThread;
-
 extern struct List_s *outgoing;
 extern pthread_mutex_t outgoingMutex;
 pthread_cond_t senderSignal = PTHREAD_COND_INITIALIZER;
@@ -38,7 +37,7 @@ void* listener(void* unused){
 }
 
 void close_input(void* unused){
-	printf("Shutting Down Input Module...");
+	printf("Shutting Down Input Module...\n");
 	pthread_cancel(inputThread);
 	pthread_join(inputThread, NULL);
 }

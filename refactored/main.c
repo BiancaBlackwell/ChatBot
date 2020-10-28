@@ -13,7 +13,6 @@
 
 #define MSG_MAX_LEN 1024
 #define PORT 22110
-#define fPORT 21210
 
 struct List_s *outgoing;
 pthread_mutex_t outgoingMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -24,16 +23,11 @@ pthread_mutex_t outgoingMutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argCount, char** args){
 
-	//what if i make the lists here? and pass pointers to threads for the list they need access to.
-
-	//when outgoing is accessed by input, it should be locked so that sender cannot use it.
-	//when outgoing is accessed by sender, it should be locked for input!
-
 	init_input(NULL);
 	init_receiver(NULL);
 	init_sender(NULL);
 
-	sleep(10);
+	sleep(100);
 
 	close_receiver(NULL);
 	close_input(NULL);

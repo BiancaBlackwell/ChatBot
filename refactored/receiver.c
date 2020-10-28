@@ -15,36 +15,50 @@
 
 static pthread_t receiverThread;
 struct List_s *incoming;
+#define PORT 22110
+
 //almost exactly like input, basically just run at all times!
 void init_receiver(void* unused){
 	pthread_create(&receiverThread, NULL, receiver, NULL);
 }
 void* receiver(void* unused){
+    char buffer[MSG_MAX_LEN] = {0};
 	printf("Starting up Receiver Module...\n");
-    char buffer[MSG_MAX_LEN]; 
-    char *message = "Hello Client"; 
-    int listenfd, len; 
-    struct sockaddr_in servaddr, cliaddr; 
-    bzero(&servaddr, sizeof(servaddr)); 
-  
-    // Create a UDP Socket 
-    listenfd = socket(AF_INET, SOCK_DGRAM, 0);         
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); 
-    servaddr.sin_port = htons(PORT); 
-    servaddr.sin_family = AF_INET;  
-   
-    // bind server address to socket descriptor 
-    bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)); 
-    while(true){
-        //receive the datagram 
-        len = sizeof(cliaddr); 
-        int n = recvfrom(listenfd, buffer, sizeof(buffer), 
-                0, (struct sockaddr*)&cliaddr,&len); //receive message from server 
-        buffer[n] = '\0'; 
-        puts(buffer); 
-        printf("YOU HAVE MAIL!\n");
+    int sockfd = socket(AF_INET,SOCK_DGRAM,0);
+    if(sockfd == -1){
+        printf("Receiver Socket Failed :( \n");
+        exit(1);
+    }
+    //Address
+    struct sockaddr_in myAddress;
+    memset(&myAddress, 0, sizeof(myAddress));
+    myAddress.sin_family = AF_INET;
+    myAddress.sin_addr.s_addr = htons(INADDR_ANY); //my address to receieve
+    myAddress.sin_port = htons(22211); //my port to recieve [HARDCODED RN, FIX THAT]
+
+    //Create UDP socket
+    int n = bind(sockfd, (struct sockaddr*) &myAddress, sizeof(myAddress));
+    if(n == -1){
+        printf("Failed to bind receiver socket\n");
+        close(sockfd);
+        exit(1);
     }
 
+    int h;
+    while(true){
+        //get data (blocking)
+        //change address sent to client
+
+        struct sockaddr_in sinRemote;
+        unsigned int sin_len = sizeof(sinRemote);
+        char messageRx[MSG_MAX_LEN];
+        int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet!
+        messageRx[h] = '\n';
+        //do something with the message
+        printf("MESSAGE RECEIEVED! %s\n", messageRx);
+    }
+    printf("Done rx thread!");
+    close(sockfd);
 }
 void close_receiver(void* unused){
 	printf("Shutting down Receiver Module...\n");

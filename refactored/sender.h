@@ -6,8 +6,6 @@
 #include "list.h"
 #include "input.h"
 #include "receiver.h"
-#define PORT 22110
-#define fPORT 21210
 
 void init_sender(void* unused);
 void* sender(void* unused);

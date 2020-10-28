@@ -17,6 +17,7 @@ pthread_t senderThread;
 extern struct List_s *outgoing;
 extern pthread_mutex_t outgoingMutex;
 extern pthread_cond_t senderSignal;
+#define PORT 22110
 
 void init_sender(void* unused){
 	pthread_create(&senderThread, NULL, sender, NULL);
@@ -29,17 +30,18 @@ void* sender(void* unused){
 		    struct sockaddr_in friendAddress; //declare struct for friend's address
 		  
 		    // Creating socket file descriptor 
-		    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { //should the protocol actually be 0?
-		        printf("socket creation failed in Sender Module\n"); 
-		        exit(1); //add in better exit handling then this >:(
-		    } 
-		  
+		    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+		    if(sockfd == -1){
+		    	printf("Sender Socket failed :( \n");
+		    	exit(1);
+		    }
+		    
 		    memset(&friendAddress, 0, sizeof(friendAddress)); //making sure our memory is clear and not whatevery garboly goop was there before
 		      
 		    // Populate struct for friend's address!!
 		    friendAddress.sin_family = AF_INET;
-		    friendAddress.sin_port = htons(PORT); //myPort so my friend knows where I am 
-		    friendAddress.sin_addr.s_addr = INADDR_ANY; //INADDR_ANY will work if both people are on the same machine...(?) TODO : improve for multi-machine 
+		    friendAddress.sin_port = htons(PORT);
+		    friendAddress.sin_addr.s_addr = INADDR_ANY; //this is where the address of our friend who is getting the message goes 
 		      
 		    int n, len; 
 
@@ -52,11 +54,14 @@ void* sender(void* unused){
 				printf("Removed from outgoing list: %s", message);
 				//when there is a message to be sent... send it! otherwise... hang around and do nothing. 
 				//if ever you see a "!" ...blow up
-			 	sendto(sockfd, (const char *)message, strlen(message), 
-			        MSG_CONFIRM, (const struct sockaddr *) &friendAddress,  
-			            sizeof(friendAddress)); 
+			 	len = sendto(sockfd, (const char *)message, strlen(message), 0, (const struct sockaddr *) &friendAddress, sizeof(friendAddress)); 
+			 	if(len == -1){
+			 		printf("Message failed to send \n");
 
-			    printf("Your message was sent.\n"); 
+			 	}
+			 	else{
+			 		printf("Your message was sent.\n"); 
+			 	}
 			          
 			    /**n = recvfrom(sockfd, (char *)buffer, MSG_MAX_LEN,  
 			                MSG_WAITALL, (struct sockaddr *) &friendAddress, 
