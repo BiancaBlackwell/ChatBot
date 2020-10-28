@@ -13,8 +13,10 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 
-static pthread_t senderThread;
+pthread_t senderThread;
 extern struct List_s *outgoing;
+extern pthread_mutex_t outgoingMutex;
+extern pthread_cond_t senderSignal;
 
 void init_sender(void* unused){
 	pthread_create(&senderThread, NULL, sender, NULL);
@@ -22,44 +24,50 @@ void init_sender(void* unused){
 void* sender(void* unused){
 	printf("Starting up Sender Module...\n");
 	//wait for list to be non-empty
-	while(true){
-		if(List_count(outgoing) != 0){
 			int sockfd; 
 		    char buffer[MSG_MAX_LEN]; 
-		    char *hello = "Hello from client"; 
-		    struct sockaddr_in     servaddr; 
+		    struct sockaddr_in friendAddress; //declare struct for friend's address
 		  
 		    // Creating socket file descriptor 
-		    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
-		        perror("socket creation failed"); 
-		        exit(EXIT_FAILURE); 
+		    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { //should the protocol actually be 0?
+		        printf("socket creation failed in Sender Module\n"); 
+		        exit(1); //add in better exit handling then this >:(
 		    } 
 		  
-		    memset(&servaddr, 0, sizeof(servaddr)); 
+		    memset(&friendAddress, 0, sizeof(friendAddress)); //making sure our memory is clear and not whatevery garboly goop was there before
 		      
-		    // Filling server information 
-		    servaddr.sin_family = AF_INET; 
-		    servaddr.sin_port = htons(PORT); 
-		    servaddr.sin_addr.s_addr = INADDR_ANY; 
+		    // Populate struct for friend's address!!
+		    friendAddress.sin_family = AF_INET;
+		    friendAddress.sin_port = htons(PORT); //myPort so my friend knows where I am 
+		    friendAddress.sin_addr.s_addr = INADDR_ANY; //INADDR_ANY will work if both people are on the same machine...(?) TODO : improve for multi-machine 
 		      
 		    int n, len; 
-		      
-		    sendto(sockfd, (const char *)hello, strlen(hello), 
-		        MSG_CONFIRM, (const struct sockaddr *) &servaddr,  
-		            sizeof(servaddr)); 
 
-		    printf("Hello message sent.\n"); 
-		          
-		    n = recvfrom(sockfd, (char *)buffer, MSG_MAX_LEN,  
-		                MSG_WAITALL, (struct sockaddr *) &servaddr, 
-		                &len); 
-		    buffer[n] = '\0'; 
-		    printf("Server : %s\n", buffer); 
-		  
-		    close(sockfd); 
+	while(true){ 
+			pthread_mutex_lock(&outgoingMutex);{
+			pthread_cond_wait(&senderSignal,&outgoingMutex);
+			if(List_count(outgoing) > 0){
+				List_first(outgoing);
+				char *message = List_remove(outgoing); //todo: change this to the message form the list
+				printf("Removed from outgoing list: %s", message);
+				//when there is a message to be sent... send it! otherwise... hang around and do nothing. 
+				//if ever you see a "!" ...blow up
+			 	sendto(sockfd, (const char *)message, strlen(message), 
+			        MSG_CONFIRM, (const struct sockaddr *) &friendAddress,  
+			            sizeof(friendAddress)); 
+
+			    printf("Your message was sent.\n"); 
+			          
+			    /**n = recvfrom(sockfd, (char *)buffer, MSG_MAX_LEN,  
+			                MSG_WAITALL, (struct sockaddr *) &friendAddress, 
+			                &len); 
+			    buffer[n] = '\0'; 
+			    printf("Server : %s\n", buffer); **/
+			}
+			pthread_mutex_unlock(&outgoingMutex);
 		}
 	}
-	//when non-empty, list_remove() and send that message!
+	close(sockfd); 
 }
 void close_sender(void* unused){
 		printf("Shutting down Sender Module...\n");

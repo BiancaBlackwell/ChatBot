@@ -2,12 +2,14 @@
 #define _RECEIVER_H_
 
 #define MSG_MAX_LEN 1024
-#define PORT 22110
 #define MAXLINE 1000 //temp testing sockets
 
 #include "list.h"
 #include "input.h"
 #include "sender.h"
+#define PORT 22110
+#define fPORT 21210
+
 
 void init_receiver(void* unused);
 void* receiver(void* unused);
