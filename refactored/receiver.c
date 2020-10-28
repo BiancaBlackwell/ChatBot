@@ -29,14 +29,14 @@ void* receiver(void* unused){
         printf("Receiver Socket Failed :( \n");
         exit(1);
     }
-    //Address
+    
     struct sockaddr_in myAddress;
     memset(&myAddress, 0, sizeof(myAddress));
     myAddress.sin_family = AF_INET;
     myAddress.sin_addr.s_addr = htons(INADDR_ANY); //my address to receieve
     myAddress.sin_port = htons(22211); //my port to recieve [HARDCODED RN, FIX THAT]
 
-    //Create UDP socket
+    //Bind the UDP socket!
     int n = bind(sockfd, (struct sockaddr*) &myAddress, sizeof(myAddress));
     if(n == -1){
         printf("Failed to bind receiver socket\n");
@@ -48,14 +48,15 @@ void* receiver(void* unused){
     while(true){
         //get data (blocking)
         //change address sent to client
-
         struct sockaddr_in sinRemote;
         unsigned int sin_len = sizeof(sinRemote);
         char messageRx[MSG_MAX_LEN];
-        int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet!
-        messageRx[h] = '\n';
+        int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet! We just NOM
+        //messageRx[h] = '\n';
         //do something with the message
-        printf("MESSAGE RECEIEVED! %s\n", messageRx);
+        printf("Friend: %s", messageRx);
+        
+        memset(&messageRx[0], 0, sizeof(messageRx)); //clear message
     }
     printf("Done rx thread!");
     close(sockfd);

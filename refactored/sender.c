@@ -28,6 +28,8 @@ void* sender(void* unused){
 			int sockfd; 
 		    char buffer[MSG_MAX_LEN]; 
 		    struct sockaddr_in friendAddress; //declare struct for friend's address
+		    int n;
+		    int len;
 		  
 		    // Creating socket file descriptor 
 		    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -40,18 +42,21 @@ void* sender(void* unused){
 		      
 		    // Populate struct for friend's address!!
 		    friendAddress.sin_family = AF_INET;
-		    friendAddress.sin_port = htons(PORT);
+		    friendAddress.sin_port = htons(PORT);	//friends address port??????
 		    friendAddress.sin_addr.s_addr = INADDR_ANY; //this is where the address of our friend who is getting the message goes 
-		      
-		    int n, len; 
 
 	while(true){ 
 			pthread_mutex_lock(&outgoingMutex);{
 			pthread_cond_wait(&senderSignal,&outgoingMutex);
+
 			if(List_count(outgoing) > 0){
 				List_first(outgoing);
-				char *message = List_remove(outgoing); //todo: change this to the message form the list
-				printf("Removed from outgoing list: %s", message);
+				char *message = List_remove(outgoing);
+				if(message[0] == '!'){ //todo: stop this from shutdown any occurance of ! as first character.
+					printf("Okay, shutting down...\n");
+					exit(1);
+				}
+				//printf("Removed from outgoing list: %s", message);
 				//when there is a message to be sent... send it! otherwise... hang around and do nothing. 
 				//if ever you see a "!" ...blow up
 			 	len = sendto(sockfd, (const char *)message, strlen(message), 0, (const struct sockaddr *) &friendAddress, sizeof(friendAddress)); 
@@ -60,14 +65,8 @@ void* sender(void* unused){
 
 			 	}
 			 	else{
-			 		printf("Your message was sent.\n"); 
+			 		//printf("Your message was sent.\n"); 
 			 	}
-			          
-			    /**n = recvfrom(sockfd, (char *)buffer, MSG_MAX_LEN,  
-			                MSG_WAITALL, (struct sockaddr *) &friendAddress, 
-			                &len); 
-			    buffer[n] = '\0'; 
-			    printf("Server : %s\n", buffer); **/
 			}
 			pthread_mutex_unlock(&outgoingMutex);
 		}

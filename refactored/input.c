@@ -22,12 +22,13 @@ void* listener(void* unused){
 	printf("Starting up Input Module...\n");
 	
 	char message[MSG_MAX_LEN];
+
 	outgoing = List_create(); //for messages that are to be sent
 
 	while(true){
 		if(fgets(message, MSG_MAX_LEN, stdin) !=  NULL){
 			pthread_mutex_lock(&outgoingMutex);
-			printf("Adding to outgoing list: %s", message);
+			//printf("Adding to outgoing list: %s", message);
 			List_add(outgoing,message);
 			pthread_mutex_unlock(&outgoingMutex);
 			pthread_cond_signal(&senderSignal);
