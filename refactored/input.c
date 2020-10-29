@@ -21,7 +21,7 @@ void init_input(void* unused){
 void* listener(void* unused){
 	printf("Starting up Input Module...\n");
 	
-	char message[MSG_MAX_LEN];
+	char* message;
 	//use a malloc call to grab blocks of memory assigned to a pointer that i will the shoving in the list
 	//only ever having one pointer! but, it's being moved addresses to talk about different chunks
 	//saving the addresses of these pointers by shoving them into the list
@@ -30,10 +30,20 @@ void* listener(void* unused){
 	outgoing = List_create(); //for messages that are to be sent
 
 	while(true){
+		//malloc a new chunk of memory for new message
+		message = malloc(MSG_MAX_LEN*sizeof(char));
+		//load it up with 0's to be safe
+		if (message != NULL){
+    		memset(message, 0, MSG_MAX_LEN*sizeof(char));
+		}
+		else{
+			printf("Oh no! malloc error in input.c\n");
+			exit(1);
+		}
+		//Listen for user input
 		if(fgets(message, MSG_MAX_LEN, stdin) !=  NULL){
 			pthread_mutex_lock(&outgoingMutex);
-			//printf("Adding to outgoing list: %s", message);
-			List_add(outgoing,message);
+			List_add(outgoing,message);	//critical section
 			pthread_mutex_unlock(&outgoingMutex);
 			pthread_cond_signal(&senderSignal);
 		}

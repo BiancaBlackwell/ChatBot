@@ -15,7 +15,6 @@
 
 static pthread_t receiverThread;
 struct List_s *incoming;
-#define PORT 22110
 extern pthread_mutex_t incomingMutex;
 pthread_cond_t screenSignal = PTHREAD_COND_INITIALIZER;
 
@@ -38,7 +37,7 @@ void* receiver(void* unused){
     memset(&myAddress, 0, sizeof(myAddress));
     myAddress.sin_family = AF_INET;
     myAddress.sin_addr.s_addr = htons(INADDR_ANY); //my address to receieve
-    myAddress.sin_port = htons(22211); //my port to recieve
+    myAddress.sin_port = htons(atoi(mPORT)); //my port to recieve
 
     //Bind the UDP socket!
     int n = bind(sockfd, (struct sockaddr*) &myAddress, sizeof(myAddress));
@@ -49,26 +48,31 @@ void* receiver(void* unused){
     }
 
     incoming = List_create();
-    char messageRx[MSG_MAX_LEN];
-    char messageWaiting[MSG_MAX_LEN];
+    char *messageRx;
     int h;
     printf("Okay! We are going to be listening sent to port %s\n", mPORT);
     while(true){
-        //get data (blocking)
+        //malloc a pointer for getting a nice new memory chunk and make sure it's clear
+        messageRx = malloc(MSG_MAX_LEN*sizeof(char));
+        if(messageRx != NULL){
+            memset(&messageRx[0], 0, sizeof(messageRx));
+        }
+        else{
+            printf("Oh no! malloc failed in receiver.c\n");
+            exit(1);
+        }
+    
         struct sockaddr_in sinRemote;
         unsigned int sin_len = sizeof(sinRemote);
 
-        int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet! We just NOM
+        int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet! NOM THE UDP PACKET
 
         pthread_mutex_lock(&incomingMutex);
-        //messageRx = *messageWaiting;
+
         List_add(incoming,messageRx);
         pthread_mutex_unlock(&incomingMutex);
         pthread_cond_signal(&screenSignal);
-        //memset(&messageRx[0], 0, sizeof(messageRx)); 
 
-
-        //printf("Friend: %s", messageRx);
     }
     printf("Done rx thread!");
     close(sockfd);

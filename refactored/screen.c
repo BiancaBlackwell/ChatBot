@@ -17,28 +17,30 @@ static pthread_t displayThread;
 extern struct List_s *incoming;
 extern pthread_mutex_t incomingMutex;
 extern pthread_cond_t screenSignal;
-#define PORT 22110
+struct addrinfo* result;
 
 void init_screen(void* unused){
 	pthread_create(&displayThread, NULL, display, NULL);
 }
 void* display(void* unused){
 	printf("Starting Screen Module...\n");
-	//char messageRx[MSG_MAX_LEN];
-	//printf("Friend: %s", messageRx);
-
+	
 	while(true){
 		pthread_mutex_lock(&incomingMutex);
 		pthread_cond_wait(&screenSignal,&incomingMutex);
 		if(List_count(incoming) > 0){
 			List_first(incoming);
 			char* messageRx = List_remove(incoming);
+			printf("Friend: %s", messageRx);
+			fflush(stdout);
+			//load it up with whatever is in the first position of incoming
+			//print it out on stdout
 			if(messageRx[0] == '!'){
 				printf("Okay, shutting down...\n");
 				exit(1);
 			}
-			printf("Friend: %s", messageRx);
-			fflush(stdout);
+			//free the memory at the pointer address
+			free(messageRx);
 		}
 		pthread_mutex_unlock(&incomingMutex);
 
