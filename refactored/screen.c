@@ -7,11 +7,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
- 
 #include <sys/types.h> 
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
-#include <netinet/in.h> 
+#include <netinet/in.h>
+
+//The Following is the code for my Screen Module for CMPT 300 A2 
 
 static pthread_t displayThread;
 extern struct List_s *incoming;
@@ -24,7 +25,7 @@ void init_screen(void* unused){
 }
 void* display(void* unused){
 	printf("Starting Screen Module...\n");
-	
+
 	while(true){
 		pthread_mutex_lock(&incomingMutex);
 		pthread_cond_wait(&screenSignal,&incomingMutex);

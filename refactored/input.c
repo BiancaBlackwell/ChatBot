@@ -1,6 +1,5 @@
 #include "input.h"
 #include "sender.h"
-
 #include "list.h"
 #include <stdio.h>
 #include <pthread.h>
@@ -8,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+//The Following is the code for my Input Module for CMPT 300 A2
 
 static pthread_t inputThread;
 extern struct List_s *outgoing;
@@ -18,14 +18,16 @@ void init_input(void* unused){
 	pthread_create(&inputThread, NULL, listener, NULL);
 }
 
+
+//use a malloc call to grab blocks of memory assigned to a pointer that i will the shoving in the list
+//only ever having one pointer! but, it's being moved addresses to talk about different chunks
+//saving the addresses of these pointers by shoving them into the list
+//free memory after things are getting taken off the list
+//i've basically done the same in reverse for screen & receiver
 void* listener(void* unused){
-	printf("Starting up Input Module...\n");
+	printf("Starting Input Module...\n");
 	
 	char* message;
-	//use a malloc call to grab blocks of memory assigned to a pointer that i will the shoving in the list
-	//only ever having one pointer! but, it's being moved addresses to talk about different chunks
-	//saving the addresses of these pointers by shoving them into the list
-	//free memory after things are getting taken off the list
 
 	outgoing = List_create(); //for messages that are to be sent
 
@@ -37,7 +39,7 @@ void* listener(void* unused){
     		memset(message, 0, MSG_MAX_LEN*sizeof(char));
 		}
 		else{
-			printf("Oh no! malloc error in input.c\n");
+			printf("Oh no! Malloc error in input.c\n");
 			exit(1);
 		}
 		//Listen for user input

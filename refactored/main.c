@@ -26,22 +26,25 @@ char* fPORT;
 //remember to lock access to shared list whenever someone is using it
 
 int main(int argCount, char** args){
+	printf("WELCOME TO S-TALK BY BIANCA BLACKWELL 301 304 375 for CMPT 300 A2\n");
 	if(argCount >= 3){
 		mPORT = args[1]; //my Port 
 		fAddr = args[2];
 		fPORT = args[3];
 	}
 	else{
-		printf("Not Enough Info. Please Run as ./chatbot [myPort] [friends address] [friend's port]\n");
+		printf("Not Enough Info. Please Run as ./s-talk [myPort] [friends address] [friend's port]\n");
 		exit(1);
 	}
 
-	init_input(NULL); // (char* myPort?)
-	init_receiver(NULL); // needs port that this instance will be getting messages in
-	init_sender(NULL); // needs port of friend and address string to lookup in getaddrinfo()
+	//strange interactions occured when passing arguments directly, so I found a way to not do that
+	init_input(NULL); 
+	init_receiver(NULL); 
+	init_sender(NULL); 
 	init_screen(NULL);
 
-	sleep(100);
+	//my code will time out after ~166 minutes, but this was intentional as a safety measure (incase it was left running on csil)
+	sleep(10000);
 
 	close_receiver(NULL);
 	close_input(NULL);
@@ -49,7 +52,7 @@ int main(int argCount, char** args){
 	close_screen(NULL);
 
 
-	printf("Program Finished Naturally\n");
+	printf("s-talk has Timed Out!\n");
 
 
 	return 0;

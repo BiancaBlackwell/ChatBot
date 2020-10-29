@@ -1,17 +1,17 @@
 #include "input.h"
 #include "sender.h"
-
 #include "list.h"
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
- 
 #include <sys/types.h> 
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
+
+//The Following is the code for my Receiver Module for CMPT 300 A2
 
 static pthread_t receiverThread;
 struct List_s *incoming;
@@ -26,7 +26,8 @@ void init_receiver(void* unused){
 	pthread_create(&receiverThread, NULL, receiver, NULL);
 }
 void* receiver(void* unused){
-	printf("Starting up Receiver Module...\n");
+	printf("Starting Receiver Module...\n");
+    //Create UDP socket
     int sockfd = socket(AF_INET,SOCK_DGRAM,0);
     if(sockfd == -1){
         printf("Receiver Socket Failed :( \n");
@@ -50,7 +51,7 @@ void* receiver(void* unused){
     incoming = List_create();
     char *messageRx;
     int h;
-    printf("Okay! We are going to be listening sent to port %s\n", mPORT);
+    printf("Okay! We are going to be listening to port %s\n", mPORT);
     while(true){
         //malloc a pointer for getting a nice new memory chunk and make sure it's clear
         messageRx = malloc(MSG_MAX_LEN*sizeof(char));
@@ -68,7 +69,7 @@ void* receiver(void* unused){
         int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet! NOM THE UDP PACKET
 
         pthread_mutex_lock(&incomingMutex);
-
+        //critical section
         List_add(incoming,messageRx);
         pthread_mutex_unlock(&incomingMutex);
         pthread_cond_signal(&screenSignal);
@@ -78,6 +79,7 @@ void* receiver(void* unused){
     close(sockfd);
 }
 void close_receiver(void* unused){
+    //super fool-proof thread shutdown
 	printf("Shutting down Receiver Module...\n");
 	pthread_cancel(receiverThread);
 	pthread_join(receiverThread, NULL);	
