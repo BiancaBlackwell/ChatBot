@@ -22,6 +22,10 @@ void* listener(void* unused){
 	printf("Starting up Input Module...\n");
 	
 	char message[MSG_MAX_LEN];
+	//use a malloc call to grab blocks of memory assigned to a pointer that i will the shoving in the list
+	//only ever having one pointer! but, it's being moved addresses to talk about different chunks
+	//saving the addresses of these pointers by shoving them into the list
+	//free memory after things are getting taken off the list
 
 	outgoing = List_create(); //for messages that are to be sent
 

@@ -19,6 +19,10 @@ extern pthread_mutex_t outgoingMutex;
 extern pthread_cond_t senderSignal;
 #define PORT 22110
 
+extern char* mPORT;
+extern char* fAddr;
+extern char* fPORT;
+
 void init_sender(void* unused){
 	pthread_create(&senderThread, NULL, sender, NULL);
 }
@@ -42,8 +46,9 @@ void* sender(void* unused){
 		      
 		    // Populate struct for friend's address!!
 		    friendAddress.sin_family = AF_INET;
-		    friendAddress.sin_port = htons(PORT);	//friends address port??????
-		    friendAddress.sin_addr.s_addr = INADDR_ANY; //this is where the address of our friend who is getting the message goes 
+		    friendAddress.sin_port = htons(22110);	//passed a char* myPort, convert string to short...
+		    friendAddress.sin_addr.s_addr = INADDR_ANY; // csil-cpu-1 getaddrinfo (check assginment descrip, man pages) [will use domain name w. port to find other machine]
+		    printf("Okay! we are going to be sending to %s, on port %s\n", fAddr, fPORT);
 
 	while(true){ 
 			pthread_mutex_lock(&outgoingMutex);{

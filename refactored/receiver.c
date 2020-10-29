@@ -16,13 +16,17 @@
 static pthread_t receiverThread;
 struct List_s *incoming;
 #define PORT 22110
+extern pthread_mutex_t incomingMutex;
+pthread_cond_t screenSignal = PTHREAD_COND_INITIALIZER;
 
-//almost exactly like input, basically just run at all times!
+extern char* mPORT;
+extern char* fAddr;
+extern char* fPORT;
+
 void init_receiver(void* unused){
 	pthread_create(&receiverThread, NULL, receiver, NULL);
 }
 void* receiver(void* unused){
-    char buffer[MSG_MAX_LEN] = {0};
 	printf("Starting up Receiver Module...\n");
     int sockfd = socket(AF_INET,SOCK_DGRAM,0);
     if(sockfd == -1){
@@ -34,7 +38,7 @@ void* receiver(void* unused){
     memset(&myAddress, 0, sizeof(myAddress));
     myAddress.sin_family = AF_INET;
     myAddress.sin_addr.s_addr = htons(INADDR_ANY); //my address to receieve
-    myAddress.sin_port = htons(22211); //my port to recieve [HARDCODED RN, FIX THAT]
+    myAddress.sin_port = htons(22211); //my port to recieve
 
     //Bind the UDP socket!
     int n = bind(sockfd, (struct sockaddr*) &myAddress, sizeof(myAddress));
@@ -44,19 +48,27 @@ void* receiver(void* unused){
         exit(1);
     }
 
+    incoming = List_create();
+    char messageRx[MSG_MAX_LEN];
+    char messageWaiting[MSG_MAX_LEN];
     int h;
+    printf("Okay! We are going to be listening sent to port %s\n", mPORT);
     while(true){
         //get data (blocking)
-        //change address sent to client
         struct sockaddr_in sinRemote;
         unsigned int sin_len = sizeof(sinRemote);
-        char messageRx[MSG_MAX_LEN];
+
         int h = recvfrom(sockfd, messageRx, MSG_MAX_LEN, MSG_WAITALL, 0, &sin_len); //we do absolutely no verification on this of who sent the packet! We just NOM
-        //messageRx[h] = '\n';
-        //do something with the message
-        printf("Friend: %s", messageRx);
-        
-        memset(&messageRx[0], 0, sizeof(messageRx)); //clear message
+
+        pthread_mutex_lock(&incomingMutex);
+        //messageRx = *messageWaiting;
+        List_add(incoming,messageRx);
+        pthread_mutex_unlock(&incomingMutex);
+        pthread_cond_signal(&screenSignal);
+        //memset(&messageRx[0], 0, sizeof(messageRx)); 
+
+
+        //printf("Friend: %s", messageRx);
     }
     printf("Done rx thread!");
     close(sockfd);

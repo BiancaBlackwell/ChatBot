@@ -14,7 +14,9 @@
 #include <netinet/in.h> 
 
 static pthread_t displayThread;
-struct List_s *incoming;
+extern struct List_s *incoming;
+extern pthread_mutex_t incomingMutex;
+extern pthread_cond_t screenSignal;
 #define PORT 22110
 
 void init_screen(void* unused){
@@ -22,7 +24,25 @@ void init_screen(void* unused){
 }
 void* display(void* unused){
 	printf("Starting Screen Module...\n");
+	//char messageRx[MSG_MAX_LEN];
+	//printf("Friend: %s", messageRx);
 
+	while(true){
+		pthread_mutex_lock(&incomingMutex);
+		pthread_cond_wait(&screenSignal,&incomingMutex);
+		if(List_count(incoming) > 0){
+			List_first(incoming);
+			char* messageRx = List_remove(incoming);
+			if(messageRx[0] == '!'){
+				printf("Okay, shutting down...\n");
+				exit(1);
+			}
+			printf("Friend: %s", messageRx);
+			fflush(stdout);
+		}
+		pthread_mutex_unlock(&incomingMutex);
+
+	}
 }
 void close_screen(void* unused){
 	printf("Shutting down Screen Module...\n");
